@@ -390,7 +390,13 @@ async function buscar(){
   const res=document.getElementById('resultsArea');
 
   
-  regBusca();renderSug();
+  regBusca();
+  // Manter chips visíveis após busca
+  rChips(kws,'kw-chips','chip-kw','rmKw');
+  rChips(ufs,'uf-chips','chip-uf','rmUf');
+  rChips(muns,'mun-chips','chip-mun','rmMun');
+  rChips(mods,'mod-chips','chip-mod','rmMod');
+  renderSug();
   btn.disabled=true;
   res.innerHTML='<div class="loading"><span class="spinner"></span>Buscando licitações...</div>';
 
