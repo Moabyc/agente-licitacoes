@@ -389,7 +389,7 @@ async function buscar(){
   const btn=document.getElementById('btnBuscar');
   const res=document.getElementById('resultsArea');
 
-  if(!kws.length&&!ufs.length&&!muns.length){res.innerHTML='<div class="empty">Adicione pelo menos uma palavra-chave, estado ou município.</div>';return;}
+  
   regBusca();renderSug();
   btn.disabled=true;
   res.innerHTML='<div class="loading"><span class="spinner"></span>Buscando licitações...</div>';
