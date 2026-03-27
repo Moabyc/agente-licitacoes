@@ -377,7 +377,7 @@ function demo(ativos){
     {_f:'comprasnet',objetoCompra:'Contratação de empresa de arquitetura e engenharia para projetos habitacionais',unidadeOrgao:{nomeUnidade:'Prefeitura de São Paulo',ufSigla:'SP',municipioNome:'São Paulo'},modalidadeId:4,valorTotalEstimado:3900000,dataEncerramentoProposta:'2026-05-08T10:00:00',dataPublicacaoPncp:'2026-03-17T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
     {_f:'licitanet',objetoCompra:'Serviços de manutenção predial e elétrica em unidades municipais',unidadeOrgao:{nomeUnidade:'Prefeitura de Anápolis',ufSigla:'GO',municipioNome:'Anápolis'},modalidadeId:6,valorTotalEstimado:410000,dataEncerramentoProposta:'2026-04-16T14:00:00',dataPublicacaoPncp:'2026-03-11T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
   ];
-  return base.map(i=>({...i,_fonte:i._f}));
+  return base.filter(i=>ativos.includes(i._f)).map(i=>({...i,_fonte:i._f}));
 }
 
 // ─── BUSCA ────────────────────────────────────────────────────────────────────
@@ -402,7 +402,7 @@ async function buscar(){
 
   let items=[];let pncpOk=false;
   if(ativos.includes('pncp')){try{const d=await fetchPNCP();items=[...items,...d.map(x=>({...x,_fonte:'pncp'}))];pncpOk=true;}catch(e){console.warn('PNCP indisponível:',e.message);}}
-  items=[...items,...demo(['comprasnet','licitanet'])];
+  items=[...items,...demo(ativos)];
   portaisExtra.forEach(p=>{items.push({_fonte:'custom',_pNome:p,objetoCompra:'Portal adicional',unidadeOrgao:{nomeUnidade:p,ufSigla:'',municipioNome:''},modalidadeId:null,valorTotalEstimado:null,dataEncerramentoProposta:null,dataPublicacaoPncp:null,linkSistemaOrigem:p.startsWith('http')?p:'https://'+p});});
 
   let filtrados=items.filter(item=>{
@@ -420,9 +420,8 @@ async function buscar(){
   });
 
   filtrados.sort((a,b)=>{if(a._fonte==='custom')return 1;if(b._fonte==='custom')return-1;return score(b.objetoCompra||'')-score(a.objetoCompra||'');});
-  btn.disabled=false;
 
-  if(!filtrados.length){res.innerHTML='<div class="empty">Nenhuma licitação encontrada com esses filtros. Tente remover ou ampliar os filtros.</div>';return;}
+  if(!filtrados.length){btn.disabled=false;res.innerHTML='<div class="empty">Nenhuma licitação encontrada com esses filtros. Tente remover ou ampliar os filtros.</div>';return;}
   const avisoHtml=!pncpOk&&ativos.includes('pncp')?'<div style="background:#FAEEDA;border:0.5px solid #FAC775;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#633806;">⚠️ A API do PNCP não pôde ser consultada ao abrir o arquivo localmente. Os resultados abaixo são do ComprasNet e Licitanet. Para consultar o PNCP em tempo real, instale o Python e rode o servidor local (README).</div>':'';
 
 
@@ -483,6 +482,7 @@ async function buscar(){
       <div class="resumo-box" id="rx-${i}"></div>
     </div>`;
   });
+  btn.disabled=false;
   res.innerHTML=html;
 }
 
