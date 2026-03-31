@@ -350,9 +350,17 @@ async function fetchPNCP(){
   const df=hoje.toISOString().slice(0,10).replace(/-/g,'');
   const d2=new Date();d2.setDate(d2.getDate()-60);
   const di=d2.toISOString().slice(0,10).replace(/-/g,'');
-  const r=await fetch(`https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial=${di}&dataFinal=${df}&pagina=1&tamanhoPagina=50`,{headers:{'Accept':'application/json'}});
-  if(!r.ok)throw new Error('PNCP '+r.status);
-  return(await r.json()).data||[];
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),5000);
+  try{
+    const r=await fetch(`https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial=${di}&dataFinal=${df}&pagina=1&tamanhoPagina=50`,{headers:{'Accept':'application/json'},signal:controller.signal});
+    clearTimeout(timeout);
+    if(!r.ok)throw new Error('PNCP '+r.status);
+    return(await r.json()).data||[];
+  }catch(e){
+    clearTimeout(timeout);
+    throw e;
+  }
 }
 function demo(ativos){
   const base=[
@@ -399,6 +407,7 @@ async function buscar(){
   renderSug();
   btn.disabled=true;
   res.innerHTML='<div class="loading"><span class="spinner"></span>Buscando licitações...</div>';
+  try{
 
   let items=[];let pncpOk=false;
   if(ativos.includes('pncp')){try{const d=await fetchPNCP();items=[...items,...d.map(x=>({...x,_fonte:'pncp'}))];pncpOk=true;}catch(e){console.warn('PNCP indisponível:',e.message);}}
@@ -484,6 +493,12 @@ async function buscar(){
   });
   btn.disabled=false;
   res.innerHTML=html;
+  }catch(err){
+    console.error('Erro na busca:',err);
+    res.innerHTML='<div class="empty">Ocorreu um erro na busca. Tente novamente.</div>';
+  }finally{
+    btn.disabled=false;
+  }
 }
 
 function fb(i,tEnc,pos){
