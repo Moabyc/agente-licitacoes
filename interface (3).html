@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agente de Licitações</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f3;--bg3:#ededea;
+  --text:#1a1a1a;--text2:#555;--text3:#999;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-text:#0C447C;
+  --green:#639922;--green-bg:#EAF3DE;--green-text:#3B6D11;
+  --amber-bg:#FAEEDA;--amber-text:#854F0B;
+  --red:#E24B4A;--red-bg:#FCEBEB;--red-text:#A32D2D;
+  --purple-bg:#EEEDFE;--purple-text:#3C3489;--purple:#7F77DD;
+  --teal-bg:#E1F5EE;--teal-text:#085041;--teal:#1D9E75;
+  --pink-bg:#FBEAF0;--pink-text:#72243E;--pink:#D4537E;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh;}
+.container{max-width:920px;margin:0 auto;padding:2rem 1rem;}
+header{margin-bottom:1.5rem;}
+header h1{font-size:22px;font-weight:500;margin-bottom:4px;}
+header p{font-size:13px;color:var(--text2);}
+.tabs{display:flex;gap:4px;border-bottom:0.5px solid var(--border);margin-bottom:1rem;}
+.tab{font-size:13px;padding:7px 16px;border:none;background:transparent;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab.on{color:var(--text);border-bottom:2px solid var(--blue);font-weight:500;}
+.panel{display:none;}.panel.on{display:block;}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.row:last-child{margin-bottom:0;}
+.field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px;}
+.field label{font-size:12px;color:var(--text2);}
+.hint{font-size:11px;color:var(--text3);margin-top:2px;}
+input,select{font-size:14px;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;width:100%;}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(55,138,221,0.15);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;min-height:4px;}
+.chip{display:flex;align-items:center;gap:4px;font-size:12px;padding:3px 10px;border-radius:20px;}
+.chip button{background:none;border:none;cursor:pointer;font-size:14px;line-height:1;padding:0;}
+.chip-kw{background:var(--blue-bg);color:var(--blue-text);border:0.5px solid var(--blue);}
+.chip-kw button{color:var(--blue-text);}
+.chip-uf{background:var(--purple-bg);color:var(--purple-text);border:0.5px solid var(--purple);}
+.chip-uf button{color:var(--purple-text);}
+.chip-mun{background:var(--amber-bg);color:var(--amber-text);border:0.5px solid #BA7517;}
+.chip-mun button{color:var(--amber-text);}
+.chip-mod{background:var(--teal-bg);color:var(--teal-text);border:0.5px solid var(--teal);}
+.chip-mod button{color:var(--teal-text);}
+.chip-portal{background:var(--pink-bg);color:var(--pink-text);border:0.5px solid var(--pink);}
+.chip-portal button{color:var(--pink-text);}
+.portals{display:flex;gap:8px;flex-wrap:wrap;}
+.pbtn{font-size:12px;padding:4px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all .15s;}
+.pbtn.on{background:var(--blue-bg);border-color:var(--blue);color:var(--blue-text);}
+.sbtn{width:100%;padding:10px;font-size:14px;font-weight:500;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;color:var(--text);margin-top:6px;transition:background .15s;}
+.sbtn:hover{background:var(--bg2);}
+.sbtn:disabled{opacity:.5;cursor:not-allowed;}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.b-pncp{background:var(--blue-bg);color:#185FA5;}
+.b-comprasnet{background:var(--green-bg);color:var(--green-text);}
+.b-licitanet{background:var(--amber-bg);color:var(--amber-text);}
+.b-custom{background:var(--pink-bg);color:var(--pink-text);}
+.lcard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:10px;transition:border-color .2s,opacity .2s;}
+.lcard.relevante{border-color:var(--green);}
+.lcard.irrelevante{opacity:.5;}
+.lcard.prazo-ok{border-left:3px solid var(--green);}
+.lcard.prazo-warn{border-left:3px solid #BA7517;}
+.lcard.prazo-venc{border-left:3px solid var(--red);}
+.ltitle{font-size:14px;font-weight:500;color:var(--text);flex:1;}
+.lmeta{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0;}
+.mi{font-size:12px;color:var(--text2);}
+.lfooter{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:6px;}
+.valor{font-size:13px;font-weight:500;color:var(--text);}
+.abtn{font-size:12px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);text-decoration:none;display:inline-block;}
+.abtn:hover{background:var(--bg2);}
+.fbtn{font-size:13px;padding:2px 8px;border-radius:20px;border:0.5px solid var(--border);background:transparent;cursor:pointer;}
+.fbtn.liked{background:var(--green-bg);border-color:var(--green);}
+.fbtn.disliked{background:var(--red-bg);border-color:var(--red);}
+.resumo-box{display:none;margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:13px;color:var(--text2);line-height:1.6;}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--text2);border-radius:50%;animation:spin .6s linear infinite;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading,.empty{text-align:center;padding:2rem;color:var(--text3);font-size:13px;}
+.rh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.rh span{font-size:13px;color:var(--text2);}
+.divider{border:none;border-top:0.5px solid var(--border);margin:12px 0;}
+.slabel{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.tag-rel{font-size:11px;padding:1px 7px;border-radius:20px;background:var(--green-bg);color:var(--green-text);margin-left:6px;}
+.sug-bar{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+.sug-bar span{font-size:13px;color:var(--text2);flex:1;min-width:100px;}
+.sug-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.schip{font-size:12px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--blue);background:var(--blue-bg);color:var(--blue-text);cursor:pointer;}
+.schip:hover{background:#B5D4F4;}
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:var(--radius);background:var(--bg2);margin-bottom:6px;cursor:pointer;}
+.hist-item:hover{background:var(--bg3);}
+.hist-kw{font-size:13px;color:var(--text);}
+.hist-meta{font-size:11px;color:var(--text3);}
+.hist-count{font-size:12px;font-weight:500;color:#185FA5;}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;}
+.pbar-wrap{flex:1;margin:0 10px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.pbar{height:6px;border-radius:3px;}
+.pval{font-size:12px;color:var(--text2);min-width:28px;text-align:right;}
+.ok-bar{background:var(--green-bg);border:0.5px solid #C0DD97;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--green-text);margin-bottom:1rem;}
+.err-bar{background:var(--red-bg);border:0.5px solid #F7C1C1;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--red-text);margin-bottom:1rem;}
+.al-item{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.al-meta{font-size:12px;color:var(--text2);margin-top:2px;}
+.del-btn{font-size:12px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--border2);background:transparent;cursor:pointer;color:var(--red-text);}
+.info-box{background:var(--blue-bg);border:0.5px solid #B5D4F4;border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--blue-text);margin-bottom:1rem;}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Agente de Licitações</h1>
+    <p>Busca inteligente e adaptativa — PNCP, ComprasNet, Licitanet e portais adicionais</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab on" onclick="aba('busca',this)">Buscar</button>
+    <button class="tab" onclick="aba('perfil',this)">Meu perfil</button>
+    <button class="tab" onclick="aba('alerta',this)">Alertas por e-mail</button>
+  </div>
+
+  <!-- ABA BUSCA -->
+  <div class="panel on" id="panel-busca">
+    <div id="sug-area"></div>
+    <div class="card">
+
+      <div class="slabel">Palavras-chave</div>
+      <div class="row">
+        <div class="field">
+          <input type="text" id="kw-input" placeholder="Digite e pressione Enter para adicionar..." />
+          <span class="hint">Múltiplas palavras — busca com OU entre elas</span>
+        </div>
+      </div>
+      <div class="chips" id="kw-chips"></div>
+
+      <hr class="divider">
+      <div class="slabel">Localização</div>
+      <div class="row">
+        <div class="field">
+          <label>Estado (UF) — Enter para múltiplos</label>
+          <input type="text" id="uf-input" placeholder="Ex: GO, SP, DF..." />
+          <div class="chips" id="uf-chips"></div>
+        </div>
+        <div class="field">
+          <label>Município — Enter para múltiplos</label>
+          <input type="text" id="mun-input" placeholder="Ex: Goiânia, Anápolis..." />
+          <div class="chips" id="mun-chips"></div>
+        </div>
+        <div class="field">
+          <label>Modalidade — Enter para múltiplas</label>
+          <input type="text" id="mod-input" placeholder="Ex: Pregão, Dispensa..." />
+          <div class="chips" id="mod-chips"></div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="slabel">Valor total do edital</div>
+      <div class="row">
+        <div class="field">
+          <label>Mínimo (R$)</label>
+          <input type="number" id="val-min" placeholder="Ex: 50000" min="0" />
+        </div>
+        <div class="field">
+          <label>Máximo (R$)</label>
+          <input type="number" id="val-max" placeholder="Ex: 5000000" min="0" />
+        </div>
+        <div class="field">
+          <label>Prazo mínimo restante</label>
+          <select id="prazo-min">
+            <option value="0">Qualquer prazo</option>
+            <option value="3">3+ dias</option>
+            <option value="5" selected>5+ dias</option>
+            <option value="10">10+ dias</option>
+            <option value="15">15+ dias</option>
+            <option value="30">30+ dias</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="slabel">Portais</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="portals">
+          <button class="pbtn on" data-p="pncp">PNCP</button>
+          <button class="pbtn on" data-p="comprasnet">ComprasNet</button>
+          <button class="pbtn on" data-p="licitanet">Licitanet</button>
+        </div>
+        <div class="field" style="max-width:400px;">
+          <label>Portais adicionais — Enter para adicionar</label>
+          <input type="text" id="portal-input" placeholder="Ex: bec.sp.gov.br, licitacoes.go.gov.br..." />
+          <span class="hint">Insira o endereço ou nome do portal</span>
+          <div class="chips" id="portal-chips"></div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button class="sbtn" id="btnBuscar" onclick="buscar()">Buscar licitações</button>
+      </div>
+    </div>
+    <div id="resultsArea"></div>
+  </div>
+
+  <!-- ABA PERFIL -->
+  <div class="panel" id="panel-perfil">
+    <div class="card">
+      <div class="slabel">Histórico de buscas frequentes</div>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px;">Clique em uma busca para aplicar os filtros automaticamente.</p>
+      <div id="hist-lista"></div>
+    </div>
+    <div class="card">
+      <div class="slabel">Palavras mais relevantes (👍)</div>
+      <div id="perfil-pos"></div>
+    </div>
+    <div class="card">
+      <div class="slabel">Palavras menos relevantes (👎)</div>
+      <div id="perfil-neg"></div>
+    </div>
+    <button class="sbtn" style="margin-top:4px;" onclick="if(confirm('Apagar todo o histórico de aprendizado?')){limparPerfil();}">Limpar meu perfil</button>
+  </div>
+
+  <!-- ABA ALERTAS -->
+  <div class="panel" id="panel-alerta">
+    <div class="info-box">
+      Os filtros de busca (palavras-chave, estado, município, modalidade, valor e prazo) são os configurados na aba <strong>Buscar</strong>. Aqui você define apenas o e-mail de destino e a frequência de envio.
+    </div>
+    <div class="card">
+      <div class="row">
+        <div class="field" style="flex:2;min-width:200px;">
+          <label>E-mail para receber os alertas</label>
+          <input type="email" id="alerta-email" placeholder="voce@gmail.com" />
+        </div>
+        <div class="field">
+          <label>Frequência de envio</label>
+          <select id="alerta-freq">
+            <option value="diario">Diário (08h)</option>
+            <option value="semanal">Semanal (segunda-feira)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <button class="sbtn" onclick="salvarAlerta()">Salvar alerta</button>
+      </div>
+    </div>
+    <div id="alerta-fb"></div>
+    <div id="lista-alertas"></div>
+  </div>
+</div>
+
+<script>
+const MOD_MAP={'pregão eletrônico':6,'pregão presencial':7,'pregão':6,'concorrência eletrônica':4,'concorrência presencial':5,'concorrência':4,'dispensa':8,'inexigibilidade':9,'leilão':1,'concurso':3,'credenciamento':12};
+const MOD_NOME={1:'Leilão Eletrônico',2:'Diálogo Competitivo',3:'Concurso',4:'Concorrência Eletrônica',5:'Concorrência Presencial',6:'Pregão Eletrônico',7:'Pregão Presencial',8:'Dispensa',9:'Inexigibilidade',12:'Credenciamento'};
+
+let kws=[],ufs=[],muns=[],mods=[],portaisExtra=[];
+
+// ─── PERFIL ───────────────────────────────────────────────────────────────────
+function gP(){try{return JSON.parse(localStorage.getItem('perfil_v4')||'{"buscas":[],"pos":{},"neg":{}}');}catch{return{buscas:[],pos:{},neg:{}};}}
+function sP(p){localStorage.setItem('perfil_v4',JSON.stringify(p));}
+
+function regBusca(){
+  const p=gP();
+  const chave=[...kws].sort().join(',')+'|'+[...ufs].sort().join(',')+'|'+[...muns].sort().join(',');
+  const idx=p.buscas.findIndex(b=>b.chave===chave);
+  if(idx>=0){p.buscas[idx].count++;p.buscas[idx].ultima=new Date().toLocaleDateString('pt-BR');}
+  else p.buscas.unshift({chave,kws:[...kws],ufs:[...ufs],muns:[...muns],count:1,ultima:new Date().toLocaleDateString('pt-BR')});
+  p.buscas=p.buscas.slice(0,20);sP(p);
+}
+function regFeedback(titulo,positivo){
+  const p=gP();
+  const palavras=(titulo.toLowerCase().match(/\b\w{4,}\b/g)||[]);
+  const alvo=positivo?p.pos:p.neg;
+  palavras.forEach(w=>{alvo[w]=(alvo[w]||0)+1;});
+  kws.forEach(k=>{const ka=k.toLowerCase();if(positivo)p.pos[ka]=(p.pos[ka]||0)+3;else p.neg[ka]=(p.neg[ka]||0)+3;});
+  sP(p);
+}
+function score(titulo){
+  const p=gP();const t=titulo.toLowerCase();let s=0;
+  Object.entries(p.pos).forEach(([w,n])=>{if(t.includes(w))s+=n;});
+  Object.entries(p.neg).forEach(([w,n])=>{if(t.includes(w))s-=n;});
+  return s;
+}
+function getSug(){
+  const p=gP();const top=p.buscas.slice(0,5);
+  const kF={},uF={},mF={};
+  top.forEach(b=>{(b.kws||[]).forEach(k=>{kF[k]=(kF[k]||0)+b.count;});(b.ufs||[]).forEach(u=>{uF[u]=(uF[u]||0)+b.count;});(b.muns||[]).forEach(m=>{mF[m]=(mF[m]||0)+b.count;});});
+  return{kws:Object.entries(kF).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]),ufs:Object.entries(uF).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0]),muns:Object.entries(mF).sort((a,b)=>b[1]-a[1]).slice(0,2).map(e=>e[0])};
+}
+
+// ─── CHIPS ────────────────────────────────────────────────────────────────────
+function rChips(arr,elId,cls,rmFn){
+  document.getElementById(elId).innerHTML=arr.map(v=>`<div class="chip ${cls}">${v}<button onclick="${rmFn}(this,'${v.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')" >×</button></div>`).join('');
+}
+function addChip(val,arr,elId,cls,rmFn){
+  val=val.trim();if(!val||arr.includes(val))return false;arr.push(val);rChips(arr,elId,cls,rmFn);return true;
+}
+function rmChip(arr,val,elId,cls,rmFn){const i=arr.indexOf(val);if(i>=0)arr.splice(i,1);rChips(arr,elId,cls,rmFn);}
+
+function addKw(e){if(e.key!=='Enter')return;e.target.value.split(',').forEach(v=>{if(addChip(v.trim(),kws,'kw-chips','chip-kw','rmKw')){}});e.target.value='';}
+function rmKw(btn,v){rmChip(kws,v,'kw-chips','chip-kw','rmKw');}
+function addUf(e){if(e.key!=='Enter')return;e.target.value.split(',').forEach(v=>{addChip(v.trim().toUpperCase(),ufs,'uf-chips','chip-uf','rmUf');});e.target.value='';}
+function rmUf(btn,v){rmChip(ufs,v,'uf-chips','chip-uf','rmUf');}
+function addMun(e){if(e.key!=='Enter')return;e.target.value.split(',').forEach(v=>{addChip(v.trim(),muns,'mun-chips','chip-mun','rmMun');});e.target.value='';}
+function rmMun(btn,v){rmChip(muns,v,'mun-chips','chip-mun','rmMun');}
+function addMod(e){if(e.key!=='Enter')return;e.target.value.split(',').forEach(v=>{addChip(v.trim(),mods,'mod-chips','chip-mod','rmMod');});e.target.value='';}
+function rmMod(btn,v){rmChip(mods,v,'mod-chips','chip-mod','rmMod');}
+function addPortal(e){if(e.key!=='Enter')return;e.target.value.split(',').forEach(v=>{addChip(v.trim(),portaisExtra,'portal-chips','chip-portal','rmPortal');});e.target.value='';}
+function rmPortal(btn,v){rmChip(portaisExtra,v,'portal-chips','chip-portal','rmPortal');}
+
+document.querySelectorAll('.pbtn').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('on')));
+
+function aba(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');document.getElementById('panel-'+id).classList.add('on');
+  if(id==='perfil')renderPerfil();
+  if(id==='alerta')renderAlertas();
+}
+function aplSug(tipo,val){
+  if(tipo==='kw')addChip(val,kws,'kw-chips','chip-kw','rmKw');
+  if(tipo==='uf')addChip(val.toUpperCase(),ufs,'uf-chips','chip-uf','rmUf');
+  if(tipo==='mun')addChip(val,muns,'mun-chips','chip-mun','rmMun');
+  renderSug();
+}
+function renderSug(){
+  const s=getSug();const area=document.getElementById('sug-area');
+  const chips=[];
+  s.kws.filter(k=>!kws.includes(k)).forEach(k=>chips.push(`<span class="schip" onclick="aplSug('kw','${k}')">+ ${k}</span>`));
+  s.ufs.filter(u=>!ufs.includes(u)).forEach(u=>chips.push(`<span class="schip" onclick="aplSug('uf','${u}')">📍 ${u}</span>`));
+  s.muns.filter(m=>!muns.includes(m)).forEach(m=>chips.push(`<span class="schip" onclick="aplSug('mun','${m}')">🏙 ${m}</span>`));
+  if(!chips.length){area.innerHTML='';return;}
+  area.innerHTML=`<div class="sug-bar"><span>Baseado no seu histórico:</span><div class="sug-chips">${chips.join('')}</div></div>`;
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function fmt(v){if(!v&&v!==0)return'—';return'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtD(d){if(!d)return'—';try{const p=d.split('T')[0].split('-');return p[2]+'/'+p[1]+'/'+p[0];}catch{return'—';}}
+function dias(d){if(!d)return null;try{const dt=new Date(d.split('T')[0]);const h=new Date();h.setHours(0,0,0,0);return Math.ceil((dt-h)/(1000*60*60*24));}catch{return null;}}
+function pClass(d){if(d===null)return'';if(d<3)return'prazo-venc';if(d<7)return'prazo-warn';return'prazo-ok';}
+function mKw(t){if(!kws.length)return true;const tx=(t||'').toLowerCase();return kws.some(k=>tx.includes(k.toLowerCase()));}
+function mUf(u){if(!ufs.length)return true;const uu=(u||'').toUpperCase().trim();return ufs.some(x=>x.toUpperCase().trim()===uu);}
+function mMun(m){if(!muns.length)return true;return muns.some(x=>(m||'').toLowerCase().includes(x.toLowerCase()));}
+function mMod(id){
+  if(!mods.length)return true;
+  return mods.some(m=>{const mk=MOD_MAP[m.toLowerCase()];if(mk)return mk===id;return(MOD_NOME[id]||'').toLowerCase().includes(m.toLowerCase());});
+}
+
+// ─── API PNCP ─────────────────────────────────────────────────────────────────
+async function fetchPNCP(){
+  const hoje=new Date();
+  const df=hoje.toISOString().slice(0,10).replace(/-/g,'');
+  const d2=new Date();d2.setDate(d2.getDate()-60);
+  const di=d2.toISOString().slice(0,10).replace(/-/g,'');
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),5000);
+  try{
+    const r=await fetch(`https://pncp.gov.br/api/consulta/v1/contratacoes/publicacao?dataInicial=${di}&dataFinal=${df}&pagina=1&tamanhoPagina=50`,{headers:{'Accept':'application/json'},signal:controller.signal});
+    clearTimeout(timeout);
+    if(!r.ok)throw new Error('PNCP '+r.status);
+    return(await r.json()).data||[];
+  }catch(e){
+    clearTimeout(timeout);
+    throw e;
+  }
+}
+function demo(ativos){
+  const base=[
+    {_f:'comprasnet',objetoCompra:'Contratação de empresa de engenharia para obras de pavimentação urbana',unidadeOrgao:{nomeUnidade:'Prefeitura de Goiânia',ufSigla:'GO',municipioNome:'Goiânia'},modalidadeId:4,valorTotalEstimado:3200000,dataEncerramentoProposta:'2026-04-20T10:00:00',dataPublicacaoPncp:'2026-03-10T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Serviços de engenharia para reforma e ampliação de escola municipal',unidadeOrgao:{nomeUnidade:'Prefeitura de Campinas',ufSigla:'SP',municipioNome:'Campinas'},modalidadeId:6,valorTotalEstimado:850000,dataEncerramentoProposta:'2026-04-15T14:00:00',dataPublicacaoPncp:'2026-03-12T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'licitanet',objetoCompra:'Projeto de engenharia e execução de drenagem pluvial',unidadeOrgao:{nomeUnidade:'Prefeitura de Belo Horizonte',ufSigla:'MG',municipioNome:'Belo Horizonte'},modalidadeId:4,valorTotalEstimado:4700000,dataEncerramentoProposta:'2026-05-02T09:00:00',dataPublicacaoPncp:'2026-03-14T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Engenharia consultiva para elaboração de projetos básicos de infraestrutura',unidadeOrgao:{nomeUnidade:'Secretaria de Infraestrutura GO',ufSigla:'GO',municipioNome:'Goiânia'},modalidadeId:9,valorTotalEstimado:620000,dataEncerramentoProposta:'2026-04-28T17:00:00',dataPublicacaoPncp:'2026-03-15T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Contratação de serviços de desenvolvimento de software para gestão municipal',unidadeOrgao:{nomeUnidade:'Prefeitura de Anápolis',ufSigla:'GO',municipioNome:'Anápolis'},modalidadeId:6,valorTotalEstimado:320000,dataEncerramentoProposta:'2026-04-25T10:00:00',dataPublicacaoPncp:'2026-03-12T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Aquisição de sistema de gestão hospitalar (software e implantação)',unidadeOrgao:{nomeUnidade:'Secretaria de Saúde SP',ufSigla:'SP',municipioNome:'São Paulo'},modalidadeId:6,valorTotalEstimado:1200000,dataEncerramentoProposta:'2026-04-18T14:00:00',dataPublicacaoPncp:'2026-03-10T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Serviços de limpeza e conservação predial – contrato anual',unidadeOrgao:{nomeUnidade:'Prefeitura Aparecida de Goiânia',ufSigla:'GO',municipioNome:'Aparecida de Goiânia'},modalidadeId:6,valorTotalEstimado:960000,dataEncerramentoProposta:'2026-04-20T09:00:00',dataPublicacaoPncp:'2026-03-10T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'licitanet',objetoCompra:'Aquisição de equipamentos médicos e hospitalares',unidadeOrgao:{nomeUnidade:'Secretaria de Saúde GO',ufSigla:'GO',municipioNome:'Goiânia'},modalidadeId:6,valorTotalEstimado:2100000,dataEncerramentoProposta:'2026-05-01T09:00:00',dataPublicacaoPncp:'2026-03-18T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Fornecimento de medicamentos e insumos hospitalares',unidadeOrgao:{nomeUnidade:'Prefeitura de São Paulo',ufSigla:'SP',municipioNome:'São Paulo'},modalidadeId:6,valorTotalEstimado:5800000,dataEncerramentoProposta:'2026-04-22T10:00:00',dataPublicacaoPncp:'2026-03-11T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Fornecimento de gêneros alimentícios para merenda escolar',unidadeOrgao:{nomeUnidade:'Secretaria de Educação Goiânia',ufSigla:'GO',municipioNome:'Goiânia'},modalidadeId:8,valorTotalEstimado:480000,dataEncerramentoProposta:'2026-04-05T12:00:00',dataPublicacaoPncp:'2026-03-08T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Contratação de empresa de vigilância e segurança patrimonial',unidadeOrgao:{nomeUnidade:'TRF 1ª Região',ufSigla:'DF',municipioNome:'Brasília'},modalidadeId:6,valorTotalEstimado:780000,dataEncerramentoProposta:'2026-04-12T17:00:00',dataPublicacaoPncp:'2026-03-09T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Aquisição de veículos para frota municipal',unidadeOrgao:{nomeUnidade:'Prefeitura de Uberlândia',ufSigla:'MG',municipioNome:'Uberlândia'},modalidadeId:6,valorTotalEstimado:1450000,dataEncerramentoProposta:'2026-04-30T10:00:00',dataPublicacaoPncp:'2026-03-13T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Fornecimento de material didático e escolar para rede municipal',unidadeOrgao:{nomeUnidade:'Prefeitura de Ribeirão Preto',ufSigla:'SP',municipioNome:'Ribeirão Preto'},modalidadeId:6,valorTotalEstimado:390000,dataEncerramentoProposta:'2026-04-17T14:00:00',dataPublicacaoPncp:'2026-03-11T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Obras de recapeamento asfáltico em vias urbanas',unidadeOrgao:{nomeUnidade:'Prefeitura de Goiânia',ufSigla:'GO',municipioNome:'Goiânia'},modalidadeId:4,valorTotalEstimado:6200000,dataEncerramentoProposta:'2026-05-10T09:00:00',dataPublicacaoPncp:'2026-03-16T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Construção de unidade básica de saúde – UBS',unidadeOrgao:{nomeUnidade:'Prefeitura de Belo Horizonte',ufSigla:'MG',municipioNome:'Belo Horizonte'},modalidadeId:4,valorTotalEstimado:2800000,dataEncerramentoProposta:'2026-05-05T10:00:00',dataPublicacaoPncp:'2026-03-14T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Manutenção de software de folha de pagamento e RH',unidadeOrgao:{nomeUnidade:'Câmara Municipal de Goiânia',ufSigla:'GO',municipioNome:'Goiânia'},modalidadeId:9,valorTotalEstimado:150000,dataEncerramentoProposta:'2026-04-08T17:00:00',dataPublicacaoPncp:'2026-03-15T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Serviços de contabilidade e assessoria financeira para prefeitura',unidadeOrgao:{nomeUnidade:'Prefeitura de Aparecida de Goiânia',ufSigla:'GO',municipioNome:'Aparecida de Goiânia'},modalidadeId:6,valorTotalEstimado:240000,dataEncerramentoProposta:'2026-04-14T10:00:00',dataPublicacaoPncp:'2026-03-10T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Aquisição de computadores e equipamentos de informática',unidadeOrgao:{nomeUnidade:'Secretaria de Educação MG',ufSigla:'MG',municipioNome:'Belo Horizonte'},modalidadeId:6,valorTotalEstimado:870000,dataEncerramentoProposta:'2026-04-23T09:00:00',dataPublicacaoPncp:'2026-03-13T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+    {_f:'comprasnet',objetoCompra:'Contratação de empresa de arquitetura e engenharia para projetos habitacionais',unidadeOrgao:{nomeUnidade:'Prefeitura de São Paulo',ufSigla:'SP',municipioNome:'São Paulo'},modalidadeId:4,valorTotalEstimado:3900000,dataEncerramentoProposta:'2026-05-08T10:00:00',dataPublicacaoPncp:'2026-03-17T00:00:00',linkSistemaOrigem:'https://comprasnet.gov.br'},
+    {_f:'licitanet',objetoCompra:'Serviços de manutenção predial e elétrica em unidades municipais',unidadeOrgao:{nomeUnidade:'Prefeitura de Anápolis',ufSigla:'GO',municipioNome:'Anápolis'},modalidadeId:6,valorTotalEstimado:410000,dataEncerramentoProposta:'2026-04-16T14:00:00',dataPublicacaoPncp:'2026-03-11T00:00:00',linkSistemaOrigem:'https://licitanet.com.br'},
+  ];
+  return base.filter(i=>ativos.includes(i._f)).map(i=>({...i,_fonte:i._f}));
+}
+
+// ─── BUSCA ────────────────────────────────────────────────────────────────────
+async function buscar(){
+  const valMin=parseFloat(document.getElementById('val-min').value)||0;
+  const valMax=parseFloat(document.getElementById('val-max').value)||Infinity;
+  const prazoMin=parseInt(document.getElementById('prazo-min').value)||0;
+  const ativos=[...document.querySelectorAll('.pbtn.on')].map(b=>b.dataset.p);
+  const btn=document.getElementById('btnBuscar');
+  const res=document.getElementById('resultsArea');
+
+  
+  regBusca();
+  // Manter chips visíveis após busca
+  rChips(kws,'kw-chips','chip-kw','rmKw');
+  rChips(ufs,'uf-chips','chip-uf','rmUf');
+  rChips(muns,'mun-chips','chip-mun','rmMun');
+  rChips(mods,'mod-chips','chip-mod','rmMod');
+  renderSug();
+  btn.disabled=true;
+  res.innerHTML='<div class="loading"><span class="spinner"></span>Buscando licitações...</div>';
+  try{
+
+  let items=[];let pncpOk=false;
+  if(ativos.includes('pncp')){try{const d=await fetchPNCP();items=[...items,...d.map(x=>({...x,_fonte:'pncp'}))];pncpOk=true;}catch(e){console.warn('PNCP indisponível:',e.message);}}
+  items=[...items,...demo(ativos)];
+  portaisExtra.forEach(p=>{items.push({_fonte:'custom',_pNome:p,objetoCompra:'Portal adicional',unidadeOrgao:{nomeUnidade:p,ufSigla:'',municipioNome:''},modalidadeId:null,valorTotalEstimado:null,dataEncerramentoProposta:null,dataPublicacaoPncp:null,linkSistemaOrigem:p.startsWith('http')?p:'https://'+p});});
+
+  let filtrados=items.filter(item=>{
+    if(item._fonte==='custom')return true;
+    const iVal=parseFloat(item.valorTotalEstimado)||0;
+    const d=dias(item.dataEncerramentoProposta);
+    if(!mKw(item.objetoCompra))return false;
+    if(!mUf(item.unidadeOrgao?.ufSigla||''))return false;
+    if(!mMun(item.unidadeOrgao?.municipioNome||''))return false;
+    if(!mMod(item.modalidadeId))return false;
+    if(valMin&&iVal<valMin)return false;
+    if(valMax!==Infinity&&iVal>valMax)return false;
+    if(prazoMin&&d!==null&&d<prazoMin)return false;
+    return true;
+  });
+
+  filtrados.sort((a,b)=>{if(a._fonte==='custom')return 1;if(b._fonte==='custom')return-1;return score(b.objetoCompra||'')-score(a.objetoCompra||'');});
+
+  if(!filtrados.length){btn.disabled=false;res.innerHTML='<div class="empty">Nenhuma licitação encontrada com esses filtros. Tente remover ou ampliar os filtros.</div>';return;}
+  const avisoHtml=!pncpOk&&ativos.includes('pncp')?'<div style="background:#FAEEDA;border:0.5px solid #FAC775;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#633806;">⚠️ A API do PNCP não pôde ser consultada ao abrir o arquivo localmente. Os resultados abaixo são do ComprasNet e Licitanet. Para consultar o PNCP em tempo real, instale o Python e rode o servidor local (README).</div>':'';
+
+
+  const vMin=parseFloat(document.getElementById('val-min').value)||null;
+  const vMax=parseFloat(document.getElementById('val-max').value)||null;
+
+  let html=avisoHtml+`<div class="rh"><span>${filtrados.length} resultado(s) — ordenados por relevância do seu perfil</span></div>`;
+  filtrados.slice(0,20).forEach((item,i)=>{
+    const fonte=item._fonte;
+    const titulo=item.objetoCompra||'Objeto não informado';
+    const ufI=item.unidadeOrgao?.ufSigla||'';
+    const mun=item.unidadeOrgao?.municipioNome||'';
+    const orgao=item.unidadeOrgao?.nomeUnidade||'—';
+    const modal=MOD_NOME[item.modalidadeId]||'—';
+    const iVal=parseFloat(item.valorTotalEstimado)||0;
+    const valorTxt=iVal?fmt(iVal)+' (total do edital)':'—';
+    const faixaTxt=(vMin||vMax)?`Faixa buscada: ${vMin?fmt(vMin):'—'} até ${vMax?fmt(vMax):'sem limite'}`:'';
+    const prazo=item.dataEncerramentoProposta?fmtD(item.dataEncerramentoProposta):'—';
+    const pub=item.dataPublicacaoPncp?fmtD(item.dataPublicacaoPncp):'—';
+    const link=item.linkSistemaOrigem||null;
+    const d=dias(item.dataEncerramentoProposta);
+    const dTxt=d!==null?(d<=0?'Encerrado':`${d} dia(s) restante(s)`):'';
+    const sc=score(titulo);
+    const tagRel=sc>2&&fonte!=='custom'?'<span class="tag-rel">relevante para você</span>':'';
+    const badge=fonte==='pncp'?'<span class="badge b-pncp">PNCP</span>':fonte==='comprasnet'?'<span class="badge b-comprasnet">ComprasNet</span>':fonte==='licitanet'?'<span class="badge b-licitanet">Licitanet</span>':`<span class="badge b-custom">${item._pNome||'Portal extra'}</span>`;
+
+    if(fonte==='custom'){
+      html+=`<div class="lcard" id="lc-${i}">
+        <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px;"><span class="ltitle">Portal adicional cadastrado</span>${badge}</div>
+        <div class="lmeta"><span class="mi">🌐 ${orgao}</span></div>
+        <div class="lfooter"><span></span>${link?`<a class="abtn" href="${link}" target="_blank">Abrir portal ↗</a>`:''}</div>
+      </div>`;return;
+    }
+
+    html+=`<div class="lcard ${pClass(d)}" id="lc-${i}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
+        <span class="ltitle">${titulo}${tagRel}</span>${badge}
+      </div>
+      <div class="lmeta">
+        <span class="mi">🏛 ${orgao}</span>
+        ${mun?`<span class="mi">📍 ${mun}/${ufI}</span>`:(ufI?`<span class="mi">📍 ${ufI}</span>`:'')}
+        <span class="mi">📋 ${modal}</span>
+        <span class="mi">📅 Pub: ${pub}</span>
+        <span class="mi">⏰ ${prazo}${dTxt?' — '+dTxt:''}</span>
+      </div>
+      <div class="lfooter">
+        <div>
+          <div class="valor">${valorTxt}</div>
+          ${faixaTxt?`<div style="font-size:11px;color:var(--text2);margin-top:2px;">${faixaTxt}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <button class="fbtn" id="lk-${i}" onclick="fb(${i},'${encodeURIComponent(titulo)}',true)">👍</button>
+          <button class="fbtn" id="dk-${i}" onclick="fb(${i},'${encodeURIComponent(titulo)}',false)">👎</button>
+          ${link?`<a class="abtn" href="${link}" target="_blank">Ver edital ↗</a>`:''}
+          <button class="abtn" id="rb-${i}" onclick="resumir(${i},'${encodeURIComponent(titulo)}','${encodeURIComponent(orgao)}','${modal}','${valorTxt}','${prazo}')">Resumir com IA</button>
+        </div>
+      </div>
+      <div class="resumo-box" id="rx-${i}"></div>
+    </div>`;
+  });
+  btn.disabled=false;
+  res.innerHTML=html;
+  }catch(err){
+    console.error('Erro na busca:',err);
+    res.innerHTML='<div class="empty">Ocorreu um erro na busca. Tente novamente.</div>';
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function fb(i,tEnc,pos){
+  const titulo=decodeURIComponent(tEnc);regFeedback(titulo,pos);
+  document.getElementById('lk-'+i).classList.toggle('liked',pos);
+  document.getElementById('dk-'+i).classList.toggle('disliked',!pos);
+  document.getElementById('lc-'+i).classList.toggle('relevante',pos);
+  document.getElementById('lc-'+i).classList.toggle('irrelevante',!pos);
+}
+
+async function resumir(i,tEnc,oEnc,modal,valor,prazo){
+  const titulo=decodeURIComponent(tEnc);const orgao=decodeURIComponent(oEnc);
+  const btn=document.getElementById('rb-'+i);const box=document.getElementById('rx-'+i);
+  if(box.style.display==='block'){box.style.display='none';btn.textContent='Resumir com IA';return;}
+  btn.disabled=true;btn.textContent='Gerando...';box.style.display='block';
+  box.innerHTML='<span class="spinner"></span> Analisando com IA...';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:`Especialista em licitações públicas brasileiras. Resumo executivo em 3-4 frases: o que é contratado, quem contrata, valor total do edital e prazo.\n\nObjeto: ${titulo}\nÓrgão: ${orgao}\nModalidade: ${modal}\nValor total: ${valor}\nPrazo: ${prazo}`}]})});
+    const d=await r.json();box.innerHTML=d.content?.[0]?.text||'Não foi possível gerar o resumo.';btn.textContent='Fechar resumo';
+  }catch{box.innerHTML='Erro ao conectar à IA.';btn.textContent='Resumir com IA';}
+  btn.disabled=false;
+}
+
+// ─── PERFIL ───────────────────────────────────────────────────────────────────
+function renderPerfil(){
+  const p=gP();
+  const hEl=document.getElementById('hist-lista');
+  if(!p.buscas.length)hEl.innerHTML='<div style="font-size:13px;color:var(--text3);">Nenhuma busca ainda. Faça buscas para construir seu perfil.</div>';
+  else hEl.innerHTML=p.buscas.slice(0,8).map(b=>`
+    <div class="hist-item" onclick="aplHist('${encodeURIComponent(JSON.stringify(b))}')">
+      <div>
+        <div class="hist-kw">${(b.kws||[]).length?b.kws.join(', '):'(sem palavras-chave)'}${(b.ufs||[]).length?' · '+b.ufs.join(', '):''}${(b.muns||[]).length?' · '+b.muns.join(', '):''}</div>
+        <div class="hist-meta">Última: ${b.ultima}</div>
+      </div>
+      <span class="hist-count">${b.count}×</span>
+    </div>`).join('');
+
+  const bar=(entries,elId,cor)=>{
+    const el=document.getElementById(elId);
+    if(!entries.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);">Nenhuma avaliação ainda.</div>';return;}
+    const mx=entries[0][1];
+    el.innerHTML=entries.map(([w,n])=>`<div class="prow"><span style="font-size:13px;min-width:100px;">${w}</span><div class="pbar-wrap"><div class="pbar" style="width:${Math.round(n/mx*100)}%;background:${cor};"></div></div><span class="pval">${n}</span></div>`).join('');
+  };
+  bar(Object.entries(p.pos).sort((a,b)=>b[1]-a[1]).slice(0,6),'perfil-pos','#378ADD');
+  bar(Object.entries(p.neg).sort((a,b)=>b[1]-a[1]).slice(0,6),'perfil-neg','#E24B4A');
+}
+function aplHist(enc){
+  const b=JSON.parse(decodeURIComponent(enc));
+  kws=[...(b.kws||[])];rChips(kws,'kw-chips','chip-kw','rmKw');
+  ufs=[...(b.ufs||[])];rChips(ufs,'uf-chips','chip-uf','rmUf');
+  muns=[...(b.muns||[])];rChips(muns,'mun-chips','chip-mun','rmMun');
+  aba('busca',document.querySelectorAll('.tab')[0]);
+}
+function limparPerfil(){localStorage.removeItem('perfil_v4');renderPerfil();renderSug();}
+
+// ─── ALERTAS ─────────────────────────────────────────────────────────────────
+function gA(){try{return JSON.parse(localStorage.getItem('alertas_v4')||'[]');}catch{return[];}}
+function sA(arr){localStorage.setItem('alertas_v4',JSON.stringify(arr));}
+function salvarAlerta(){
+  const email=document.getElementById('alerta-email').value.trim();
+  const freq=document.getElementById('alerta-freq').value;
+  const fb=document.getElementById('alerta-fb');
+  if(!email||!email.includes('@')){fb.innerHTML='<div class="err-bar">Informe um e-mail válido.</div>';return;}
+  if(!kws.length&&!ufs.length&&!muns.length){fb.innerHTML='<div class="err-bar">Configure ao menos um filtro na aba Buscar antes de salvar o alerta.</div>';return;}
+  const alertas=gA();
+  alertas.push({id:Date.now(),email,freq,kws:[...kws],ufs:[...ufs],muns:[...muns],criadoEm:new Date().toLocaleDateString('pt-BR')});
+  sA(alertas);
+  fb.innerHTML=`<div class="ok-bar">Alerta salvo para <strong>${email}</strong> com os filtros da busca atual.</div>`;
+  document.getElementById('alerta-email').value='';
+  renderAlertas();setTimeout(()=>{fb.innerHTML='';},5000);
+}
+function rmAlerta(id){sA(gA().filter(a=>a.id!==id));renderAlertas();}
+function renderAlertas(){
+  const alertas=gA();const el=document.getElementById('lista-alertas');
+  if(!alertas.length){el.innerHTML='<div class="empty">Nenhum alerta cadastrado ainda.</div>';return;}
+  let html=`<div style="font-size:13px;font-weight:500;color:var(--text2);margin-bottom:8px;">${alertas.length} alerta(s) ativo(s)</div>`;
+  alertas.forEach(a=>{
+    const partes=[(a.kws||[]).length&&`"${a.kws.join(', ')}"`, (a.ufs||[]).join(', '),(a.muns||[]).join(', ')].filter(Boolean).join(' · ');
+    html+=`<div class="al-item"><div><div style="font-size:13px;">${a.email}</div><div class="al-meta">${partes||'Sem filtros'} · ${a.freq==='diario'?'Diário':'Semanal'} · desde ${a.criadoEm}</div></div><button class="del-btn" onclick="rmAlerta(${a.id})">Remover</button></div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.getElementById('kw-input').addEventListener('keydown',addKw);
+document.getElementById('uf-input').addEventListener('keydown',addUf);
+document.getElementById('mun-input').addEventListener('keydown',addMun);
+document.getElementById('mod-input').addEventListener('keydown',addMod);
+document.getElementById('portal-input').addEventListener('keydown',addPortal);
+renderSug();
+</script>
+</body>
+</html>
